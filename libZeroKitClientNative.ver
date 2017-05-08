@@ -1,0 +1,28 @@
+{
+global:
+	_init;
+	_fini;
+	cryptoRandomBytes;
+	calculateSha256;
+	calculateSha512;
+	calculateHmacSha256;
+	verifyHmacSha256;
+	derivePbkdf2HmacSha256;
+	derivePbkdf2HmacSha512;
+	deriveScrypt;
+	encryptAes128Gcm;
+	decryptAes128Gcm;
+	encryptAes256Gcm;
+	decryptAes256Gcm;
+	srp6ClientNew;
+	srp6ClientCalculateX;
+	srp6ClientCalculateVerifier;
+	srp6ClientGenerateClientCredentials;
+	srp6ClientCalculateSecret;
+	srp6ClientCalculateClientEvidenceMessage;
+	srp6ClientVerifyServerEvidenceMessage;
+	srp6ClientCalculateSessionKey;
+	srp6ClientFree;
+local:
+	*;
+};
