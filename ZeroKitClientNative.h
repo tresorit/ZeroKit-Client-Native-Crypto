@@ -1,21 +1,21 @@
 /**
  * Copyright (c) 2017, Tresorit Kft.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
- * 
+ *
  * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
- * 
+ *
  * * Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from
  *   this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -80,7 +80,7 @@ ZEROKITCLIENTNATIVE_PUBLIC int calculateSha512(const char* message, char* hash, 
  * Calculates the HMAC-SHA256 of the message.
  * @param key the hexencoded key.
  * @param message the hexencoded message.
- * @param hmac the buffer to store the hexencoded HMAC. Must be at least 129 bytes long.
+ * @param hmac the buffer to store the hexencoded HMAC. Must be at least 65 bytes long.
  * @param hmacLen the length of the HMAC buffer.
  * @return 0 on success, negative on error
  */
@@ -146,7 +146,7 @@ ZEROKITCLIENTNATIVE_PUBLIC int deriveScrypt(const char* password, const char* sa
  * hexencoded plaintext (including the terminating NULL character).
  * @param ciphertextLen the length of the ciphertext buffer.
  * @param tag the buffer to store the hexencoded tag. Must be at least (tagLen * 2 + 1) bytes long.
- * @param tagLen the desired length of the tag in bytes (16 is most commonly used).
+ * @param tagLen the desired length of the tag in bytes. Must be at least 12 (16 is most commonly used).
  * @return 0 on success, negative on error
  */
 ZEROKITCLIENTNATIVE_PUBLIC int encryptAes128Gcm(const char* key, const char* iv, const char* aad,
@@ -158,7 +158,7 @@ ZEROKITCLIENTNATIVE_PUBLIC int encryptAes128Gcm(const char* key, const char* iv,
  * @param iv the hexencoded IV.
  * @param aad the hexencoded AAD.
  * @param ciphertext the hexencoded ciphertext.
- * @param tag the hexencoded tag.
+ * @param tag the hexencoded tag. The (non-hexencoded) tag must be at least 12 bytes long.
  * @param plaintext the buffer to store the hexencoded plaintext. Must be at least as long as the
  * hexencoded ciphertext (including the terminating NULL character).
  * @param plaintextLen the length of the plaintext buffer.
@@ -166,7 +166,7 @@ ZEROKITCLIENTNATIVE_PUBLIC int encryptAes128Gcm(const char* key, const char* iv,
  * plaintext MUST NOT be used unless the return value is 1.
  */
 ZEROKITCLIENTNATIVE_PUBLIC int decryptAes128Gcm(const char* key, const char* iv, const char* aad,
-  const char* ciphertext, const char* tag, char* plaintext, size_t plainTextLen);
+  const char* ciphertext, const char* tag, char* plaintext, size_t plaintextLen);
 
 /**
  * Encrypts the plaintext with AES256-GCM.
@@ -179,7 +179,7 @@ ZEROKITCLIENTNATIVE_PUBLIC int decryptAes128Gcm(const char* key, const char* iv,
  * hexencoded plaintext (including the terminating NULL character).
  * @param ciphertextLen the length of the ciphertext buffer.
  * @param tag the buffer to store the hexencoded tag. Must be at least (tagLen * 2 + 1) bytes long.
- * @param tagLen the desired length of the tag in bytes (16 is most commonly used).
+ * @param tagLen the desired length of the tag in bytes. Must be at least 12 (16 is most commonly used).
  * @return 0 on success, negative on error
  */
 ZEROKITCLIENTNATIVE_PUBLIC int encryptAes256Gcm(const char* key, const char* iv, const char* aad,
@@ -191,7 +191,7 @@ ZEROKITCLIENTNATIVE_PUBLIC int encryptAes256Gcm(const char* key, const char* iv,
  * @param iv the hexencoded IV.
  * @param aad the hexencoded AAD.
  * @param ciphertext the hexencoded ciphertext.
- * @param tag the hexencoded tag.
+ * @param tag the hexencoded tag. The (non-hexencoded) tag must be at least 12 bytes long.
  * @param plaintext the buffer to store the hexencoded plaintext. Must be at least as long as the
  * hexencoded ciphertext (including the terminating NULL character).
  * @param plaintextLen the length of the plaintext buffer.
@@ -199,7 +199,7 @@ ZEROKITCLIENTNATIVE_PUBLIC int encryptAes256Gcm(const char* key, const char* iv,
  * plaintext MUST NOT be used unless the return value is 1.
  */
 ZEROKITCLIENTNATIVE_PUBLIC int decryptAes256Gcm(const char* key, const char* iv, const char* aad,
-  const char* ciphertext, const char* tag, char* plaintext, size_t plainTextLen);
+  const char* ciphertext, const char* tag, char* plaintext, size_t plaintextLen);
 
 /**
  * Handle for the client side of an SRP-6 transaction. Must not be reused.
