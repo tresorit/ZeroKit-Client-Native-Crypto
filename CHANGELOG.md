@@ -1,5 +1,13 @@
 # Change Log
 
+## [4.0.1] - 2017-06-02
+
+### Fix
+ - Typo and comment fixes
+
+### Changed
+ - Updated OpenSSL to 1.1.0f
+
 ## [4.0.0] - 2017-05-08
 
 ### Added

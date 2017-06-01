@@ -359,6 +359,7 @@ OPENSSL_OBJECTS = openssl/crypto/aes/aes_cbc.o \
 	openssl/crypto/asn1/x_algor.o \
 	openssl/crypto/asn1/x_bignum.o \
 	openssl/crypto/asn1/x_info.o \
+	openssl/crypto/asn1/x_int64.o \
 	openssl/crypto/asn1/x_long.o \
 	openssl/crypto/asn1/x_pkey.o \
 	openssl/crypto/asn1/x_sig.o \

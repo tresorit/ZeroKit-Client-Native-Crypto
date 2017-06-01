@@ -1,4 +1,5 @@
 # ZeroKit client native cryptographic library
+[![Build Status](https://travis-ci.org/tresorit/ZeroKit-Client-Native-Crypto.svg?branch=master)](https://travis-ci.org/tresorit/ZeroKit-Client-Native-Crypto)
 
 This library provides native cryptographic primitives for ZeroKit clients,
 utilizing OpenSSL's platform-specific optimized assembly implementations where
