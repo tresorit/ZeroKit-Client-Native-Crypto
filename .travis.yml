@@ -1,0 +1,51 @@
+language: c++
+
+os:
+  - osx
+  - linux
+
+install:
+  - 'if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+       wget https://dl.google.com/android/repository/android-ndk-r14b-linux-x86_64.zip;
+       unzip -q android-ndk-r14b-linux-x86_64.zip;
+       android-ndk-r14b/build/tools/make_standalone_toolchain.py --arch arm --api 14 --stl libc++ --install-dir toolchain/tc-arm;
+       android-ndk-r14b/build/tools/make_standalone_toolchain.py --arch arm64 --api 21 --stl libc++ --install-dir toolchain/tc-arm64;
+       android-ndk-r14b/build/tools/make_standalone_toolchain.py --arch x86 --api 14 --stl libc++ --install-dir toolchain/tc-x86;
+       export ANDROID_TOOLCHAIN_PATH_ARM=`pwd`/toolchain/tc-arm;
+       export ANDROID_TOOLCHAIN_PATH_ARM64=`pwd`/toolchain/tc-arm64;
+       export ANDROID_TOOLCHAIN_PATH_X86=`pwd`/toolchain/tc-x86;
+     fi'
+
+env:
+  - TARGET_OS=ios TARGET_CPU=arm
+  - TARGET_OS=ios TARGET_CPU=arm64
+  - TARGET_OS=ios TARGET_CPU=x86
+  - TARGET_OS=ios TARGET_CPU=x64
+  - TARGET_OS=android TARGET_CPU=arm
+  - TARGET_OS=android TARGET_CPU=arm64
+  - TARGET_OS=android TARGET_CPU=x86
+
+matrix:
+  exclude:
+    # No iOS build on Linux
+    - os: linux
+      env: TARGET_OS=ios TARGET_CPU=arm
+    - os: linux
+      env: TARGET_OS=ios TARGET_CPU=arm64
+    - os: linux
+      env: TARGET_OS=ios TARGET_CPU=x86
+    - os: linux
+      env: TARGET_OS=ios TARGET_CPU=x64
+
+    # No Android builds on OSX
+    - os: osx
+      env: TARGET_OS=android TARGET_CPU=arm
+    - os: osx
+      env: TARGET_OS=android TARGET_CPU=arm64
+    - os: osx
+      env: TARGET_OS=android TARGET_CPU=x86
+
+script:
+  - make OUTDIR=out/$TARGET_OS/$TARGET_CPU -j5
+  - if [[ "$TARGET_OS" == "ios" ]]; then file out/$TARGET_OS/$TARGET_CPU/libZeroKitClientNative.a; fi
+  - if [[ "$TARGET_OS" == "android" ]]; then file out/$TARGET_OS/$TARGET_CPU/libZeroKitClientNative.so; fi
