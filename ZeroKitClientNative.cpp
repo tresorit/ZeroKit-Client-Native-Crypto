@@ -240,69 +240,133 @@ int deriveScrypt(const char* password, const char* salt, uint64_t N, uint64_t r,
 
 namespace
 {
-int encryptAesGcm(CipherType cipherType, const char* key, const char* iv, const char* aad,
-  const char* plaintext, char* ciphertext, size_t ciphertextLen, char* tag, size_t tagLen)
+void encryptAesGcmInner(CipherType cipherType, const uint8_t* key, size_t keyLen, const uint8_t* iv,
+  size_t ivLen, const uint8_t* aad, size_t aadLen, const uint8_t* plaintext, size_t plaintextLen,
+  SecureVector& ciphertext, SecureVector& tag, size_t tagLen)
 {
-    const auto keyVec = hexToByteArray(key);
-    const auto ivVec = hexToByteArray(iv);
-    const auto aadVec = hexToByteArray(aad);
-    const auto plaintextVec = hexToByteArray(plaintext);
-    OPENSSL_THROW_IF(keyVec.size() > std::numeric_limits<int>::max());
-    OPENSSL_THROW_IF(ivVec.size() > std::numeric_limits<int>::max());
-    OPENSSL_THROW_IF(aadVec.size() > std::numeric_limits<int>::max());
-    OPENSSL_THROW_IF(plaintextVec.size() > std::numeric_limits<int>::max());
+    OPENSSL_THROW_IF(keyLen > std::numeric_limits<int>::max());
+    OPENSSL_THROW_IF(ivLen > std::numeric_limits<int>::max());
+    OPENSSL_THROW_IF(aadLen > std::numeric_limits<int>::max());
+    OPENSSL_THROW_IF(plaintextLen > std::numeric_limits<int>::max());
     OPENSSL_THROW_IF(tagLen < 12);
     OPENSSL_THROW_IF(tagLen > std::numeric_limits<int>::max());
-    OPENSSL_THROW_IF(ciphertextLen < strlen(plaintext) + 1);
 
     CipherCtx ctx;
     ctx.setType(getCipher(cipherType), CipherOperation::Encrypt);
     ctx.setPadding(false);
-    ctx.setKey(keyVec.data(), keyVec.size());
-    ctx.setIV(ivVec.data(), ivVec.size());
-    ctx.updateAAD(aadVec.data(), aadVec.size());
-    auto cipher = ctx.update(plaintextVec.data(), plaintextVec.size());
-    auto finalCipher = ctx.finalize();
-    cipher.insert(cipher.end(), finalCipher.begin(), finalCipher.end());
+    ctx.setKey(key, keyLen);
+    ctx.setIV(iv, ivLen);
+    ctx.updateAAD(aad, aadLen);
 
-    byteArrayToHex(cipher, ciphertext);
-    byteArrayToHex(ctx.getTag(tagLen), tag);
+    ciphertext = ctx.update(plaintext, plaintextLen);
+    auto finalCipher = ctx.finalize();
+    ciphertext.insert(ciphertext.end(), finalCipher.begin(), finalCipher.end());
+
+    tag = ctx.getTag(tagLen);
+}
+
+int encryptAesGcm(CipherType cipherType, const char* key, const char* iv, const char* aad,
+  const char* plaintext, char* ciphertext, size_t ciphertextLen, char* tag, size_t tagLen)
+{
+    OPENSSL_THROW_IF(ciphertextLen < strlen(plaintext) + 1);
+
+    const auto keyVec = hexToByteArray(key);
+    const auto ivVec = hexToByteArray(iv);
+    const auto aadVec = hexToByteArray(aad);
+    const auto plaintextVec = hexToByteArray(plaintext);
+
+    SecureVector ciphertextVec, tagVec;
+    encryptAesGcmInner(cipherType, keyVec.data(), keyVec.size(), ivVec.data(), ivVec.size(),
+      aadVec.data(), aadVec.size(), plaintextVec.data(), plaintextVec.size(), ciphertextVec, tagVec,
+      tagLen);
+
+    byteArrayToHex(ciphertextVec, ciphertext);
+    byteArrayToHex(tagVec, tag);
+
     return 0;
+}
+
+int encryptAesGcmRaw(CipherType cipherType, const uint8_t* key, size_t keyLen, const uint8_t* iv,
+  size_t ivLen, const uint8_t* aad, size_t aadLen, const uint8_t* plaintext, size_t plaintextLen,
+  uint8_t* ciphertext, size_t ciphertextLen, uint8_t* tag, size_t tagLen)
+{
+    OPENSSL_THROW_IF(ciphertextLen < plaintextLen);
+
+    SecureVector ciphertextVec, tagVec;
+    encryptAesGcmInner(cipherType, key, keyLen, iv, ivLen, aad, aadLen, plaintext, plaintextLen,
+      ciphertextVec, tagVec, tagLen);
+
+    memcpy(ciphertext, ciphertextVec.data(), ciphertextVec.size());
+    memcpy(tag, tagVec.data(), tagVec.size());
+
+    return 0;
+}
+
+int decryptAesGcmInner(CipherType cipherType, const uint8_t* key, size_t keyLen, const uint8_t* iv,
+  size_t ivLen, const uint8_t* aad, size_t aadLen, const uint8_t* ciphertext, size_t ciphertextLen,
+  const uint8_t* tag, size_t tagLen, SecureVector& plaintext)
+{
+    OPENSSL_THROW_IF(keyLen > std::numeric_limits<int>::max());
+    OPENSSL_THROW_IF(ivLen > std::numeric_limits<int>::max());
+    OPENSSL_THROW_IF(aadLen > std::numeric_limits<int>::max());
+    OPENSSL_THROW_IF(ciphertextLen > std::numeric_limits<int>::max());
+    OPENSSL_THROW_IF(tagLen < 12);
+    OPENSSL_THROW_IF(tagLen > std::numeric_limits<int>::max());
+
+    CipherCtx ctx;
+    ctx.setType(getCipher(cipherType), CipherOperation::Decrypt);
+    ctx.setPadding(false);
+    ctx.setKey(key, keyLen);
+    ctx.setIV(iv, ivLen);
+    ctx.updateAAD(aad, aadLen);
+    plaintext = ctx.update(ciphertext, ciphertextLen);
+    try {
+        ctx.setTag(tag, tagLen);
+        auto finalPlain = ctx.finalize();
+        plaintext.insert(plaintext.end(), finalPlain.begin(), finalPlain.end());
+    } catch (...) {
+        return 0;
+    }
+
+    return 1;
 }
 
 int decryptAesGcm(CipherType cipherType, const char* key, const char* iv, const char* aad,
   const char* ciphertext, const char* tag, char* plaintext, size_t plaintextLen)
 {
+    OPENSSL_THROW_IF(plaintextLen < strlen(ciphertext) + 1);
+
     const auto keyVec = hexToByteArray(key);
     const auto ivVec = hexToByteArray(iv);
     const auto aadVec = hexToByteArray(aad);
     const auto ciphertextVec = hexToByteArray(ciphertext);
     const auto tagVec = hexToByteArray(tag);
-    OPENSSL_THROW_IF(keyVec.size() > std::numeric_limits<int>::max());
-    OPENSSL_THROW_IF(ivVec.size() > std::numeric_limits<int>::max());
-    OPENSSL_THROW_IF(aadVec.size() > std::numeric_limits<int>::max());
-    OPENSSL_THROW_IF(ciphertextVec.size() > std::numeric_limits<int>::max());
-    OPENSSL_THROW_IF(tagVec.size() < 12);
-    OPENSSL_THROW_IF(tagVec.size() > std::numeric_limits<int>::max());
-    OPENSSL_THROW_IF(plaintextLen < strlen(ciphertext) + 1);
 
-    CipherCtx ctx;
-    ctx.setType(getCipher(cipherType), CipherOperation::Decrypt);
-    ctx.setPadding(false);
-    ctx.setKey(keyVec.data(), keyVec.size());
-    ctx.setIV(ivVec.data(), ivVec.size());
-    ctx.updateAAD(aadVec.data(), aadVec.size());
-    auto plain = ctx.update(ciphertextVec.data(), ciphertextVec.size());
-    try {
-        ctx.setTag(tagVec.data(), tagVec.size());
-        auto finalPlain = ctx.finalize();
-        plain.insert(plain.end(), finalPlain.begin(), finalPlain.end());
-    } catch (...) {
-        return 0;
+    SecureVector plaintextVec;
+    int res = decryptAesGcmInner(cipherType, keyVec.data(), keyVec.size(), ivVec.data(),
+      ivVec.size(), aadVec.data(), aadVec.size(), ciphertextVec.data(), ciphertextVec.size(),
+      tagVec.data(), tagVec.size(), plaintextVec);
+
+    if (res == 1) {
+        byteArrayToHex(plaintextVec, plaintext);
     }
+    return res;
+}
 
-    byteArrayToHex(plain, plaintext);
-    return 1;
+int decryptAesGcmRaw(CipherType cipherType, const uint8_t* key, size_t keyLen, const uint8_t* iv,
+  size_t ivLen, const uint8_t* aad, size_t aadLen, const uint8_t* ciphertext, size_t ciphertextLen,
+  const uint8_t* tag, size_t tagLen, uint8_t* plaintext, size_t plaintextLen)
+{
+    OPENSSL_THROW_IF(plaintextLen < ciphertextLen);
+
+    SecureVector plaintextVec;
+    int res = decryptAesGcmInner(cipherType, key, keyLen, iv, ivLen, aad, aadLen, ciphertext,
+      ciphertextLen, tag, tagLen, plaintextVec);
+
+    if (res == 1) {
+        memcpy(plaintext, plaintextVec.data(), plaintextVec.size());
+    }
+    return res;
 }
 }
 
@@ -345,6 +409,54 @@ int decryptAes256Gcm(const char* key, const char* iv, const char* aad, const cha
     try {
         return decryptAesGcm(
           CipherType::AES256GCM, key, iv, aad, ciphertext, tag, plaintext, plaintextLen);
+    } catch (...) {
+        return -1;
+    }
+}
+
+int encryptAes128GcmRaw(const uint8_t* key, size_t keyLen, const uint8_t* iv, size_t ivLen,
+  const uint8_t* aad, size_t aadLen, const uint8_t* plaintext, size_t plaintextLen,
+  uint8_t* ciphertext, size_t ciphertextLen, uint8_t* tag, size_t tagLen)
+{
+    try {
+        return encryptAesGcmRaw(CipherType::AES128GCM, key, keyLen, iv, ivLen, aad, aadLen,
+          plaintext, plaintextLen, ciphertext, ciphertextLen, tag, tagLen);
+    } catch (...) {
+        return -1;
+    }
+}
+
+int decryptAes128GcmRaw(const uint8_t* key, size_t keyLen, const uint8_t* iv, size_t ivLen,
+  const uint8_t* aad, size_t aadLen, const uint8_t* ciphertext, size_t ciphertextLen,
+  const uint8_t* tag, size_t tagLen, uint8_t* plaintext, size_t plaintextLen)
+{
+    try {
+        return decryptAesGcmRaw(CipherType::AES128GCM, key, keyLen, iv, ivLen, aad, aadLen,
+          ciphertext, ciphertextLen, tag, tagLen, plaintext, plaintextLen);
+    } catch (...) {
+        return -1;
+    }
+}
+
+int encryptAes256GcmRaw(const uint8_t* key, size_t keyLen, const uint8_t* iv, size_t ivLen,
+  const uint8_t* aad, size_t aadLen, const uint8_t* plaintext, size_t plaintextLen,
+  uint8_t* ciphertext, size_t ciphertextLen, uint8_t* tag, size_t tagLen)
+{
+    try {
+        return encryptAesGcmRaw(CipherType::AES256GCM, key, keyLen, iv, ivLen, aad, aadLen,
+          plaintext, plaintextLen, ciphertext, ciphertextLen, tag, tagLen);
+    } catch (...) {
+        return -1;
+    }
+}
+
+int decryptAes256GcmRaw(const uint8_t* key, size_t keyLen, const uint8_t* iv, size_t ivLen,
+  const uint8_t* aad, size_t aadLen, const uint8_t* ciphertext, size_t ciphertextLen,
+  const uint8_t* tag, size_t tagLen, uint8_t* plaintext, size_t plaintextLen)
+{
+    try {
+        return decryptAesGcmRaw(CipherType::AES256GCM, key, keyLen, iv, ivLen, aad, aadLen,
+          ciphertext, ciphertextLen, tag, tagLen, plaintext, plaintextLen);
     } catch (...) {
         return -1;
     }

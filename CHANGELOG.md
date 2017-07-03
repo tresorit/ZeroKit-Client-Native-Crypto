@@ -1,5 +1,10 @@
 # Change Log
 
+## [4.0.2] - 2017-07-03
+
+### Added
+ - Raw (non-hexencoded) AES functions
+
 ## [4.0.1] - 2017-06-02
 
 ### Fix

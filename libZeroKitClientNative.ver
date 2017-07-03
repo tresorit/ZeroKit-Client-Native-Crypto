@@ -14,6 +14,10 @@ global:
 	decryptAes128Gcm;
 	encryptAes256Gcm;
 	decryptAes256Gcm;
+	encryptAes128GcmRaw;
+	decryptAes128GcmRaw;
+	encryptAes256GcmRaw;
+	decryptAes256GcmRaw;
 	srp6ClientNew;
 	srp6ClientCalculateX;
 	srp6ClientCalculateVerifier;

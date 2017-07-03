@@ -179,7 +179,8 @@ ZEROKITCLIENTNATIVE_PUBLIC int decryptAes128Gcm(const char* key, const char* iv,
  * hexencoded plaintext (including the terminating NULL character).
  * @param ciphertextLen the length of the ciphertext buffer.
  * @param tag the buffer to store the hexencoded tag. Must be at least (tagLen * 2 + 1) bytes long.
- * @param tagLen the desired length of the tag in bytes. Must be at least 12 (16 is most commonly used).
+ * @param tagLen the desired length of the tag in bytes. Must be at least 12 (16 is most commonly
+ * used).
  * @return 0 on success, negative on error
  */
 ZEROKITCLIENTNATIVE_PUBLIC int encryptAes256Gcm(const char* key, const char* iv, const char* aad,
@@ -200,6 +201,92 @@ ZEROKITCLIENTNATIVE_PUBLIC int encryptAes256Gcm(const char* key, const char* iv,
  */
 ZEROKITCLIENTNATIVE_PUBLIC int decryptAes256Gcm(const char* key, const char* iv, const char* aad,
   const char* ciphertext, const char* tag, char* plaintext, size_t plaintextLen);
+
+/**
+ * Encrypts the plaintext with AES128-GCM.
+ * @param key the key. Must be 16 bytes long.
+ * @param keyLen the length of the key.
+ * @param iv the IV. Must be a cryptographically secure random and must be different for every
+ * encryption.
+ * @param ivLen the length of iv.
+ * @param aad the AAD.
+ * @param aadLen the length of aad.
+ * @param plaintext the plaintext.
+ * @param plaintextLen the length of plaintext.
+ * @param ciphertext the buffer to store the ciphertext. Must be at least as long as the plaintext.
+ * @param ciphertextLen the length of the ciphertext buffer.
+ * @param tag the buffer to store the tag. Must be at least tagLen bytes long.
+ * @param tagLen the desired length of the tag in bytes. Must be at least 12 (16 is most commonly
+ * used).
+ * @return 0 on success, negative on error
+ */
+ZEROKITCLIENTNATIVE_PUBLIC int encryptAes128GcmRaw(const uint8_t* key, size_t keyLen,
+  const uint8_t* iv, size_t ivLen, const uint8_t* aad, size_t aadLen, const uint8_t* plaintext,
+  size_t plaintextLen, uint8_t* ciphertext, size_t ciphertextLen, uint8_t* tag, size_t tagLen);
+
+/**
+ * Decrypts the ciphertext with AES128-GCM.
+ * @param key the key. Must be 16 bytes long.
+ * @param keyLen the length of the key.
+ * @param iv the IV.
+ * @param ivLen the length of iv.
+ * @param aad the AAD.
+ * @param aadLen the length of aad.
+ * @param ciphertext the ciphertext.
+ * @param ciphertextLen the length of ciphertext.
+ * @param tag the tag. Must be at least 12 bytes long.
+ * @param tagLen the length of tag.
+ * @param plaintext the buffer to store the plaintext. Must be at least as long as the ciphertext.
+ * @param plaintextLen the length of the plaintext buffer.
+ * @return negative on error, 0 if the verification failed, 1 if the verification succeeded. The
+ * plaintext MUST NOT be used unless the return value is 1.
+ */
+ZEROKITCLIENTNATIVE_PUBLIC int decryptAes128GcmRaw(const uint8_t* key, size_t keyLen,
+  const uint8_t* iv, size_t ivLen, const uint8_t* aad, size_t aadLen, const uint8_t* ciphertext,
+  size_t ciphertextLen, const uint8_t* tag, size_t tagLen, uint8_t* plaintext, size_t plaintextLen);
+
+/**
+ * Encrypts the plaintext with AES256-GCM.
+ * @param key the key. Must be 32 bytes long.
+ * @param keyLen the length of the key.
+ * @param iv the IV. Must be a cryptographically secure random and must be different for every
+ * encryption.
+ * @param ivLen the length of iv.
+ * @param aad the AAD.
+ * @param aadLen the length of aad.
+ * @param plaintext the plaintext.
+ * @param plaintextLen the length of plaintext.
+ * @param ciphertext the buffer to store the ciphertext. Must be at least as long as the plaintext.
+ * @param ciphertextLen the length of the ciphertext buffer.
+ * @param tag the buffer to store the tag. Must be at least tagLen bytes long.
+ * @param tagLen the desired length of the tag in bytes. Must be at least 12 (16 is most commonly
+ * used).
+ * @return 0 on success, negative on error
+ */
+ZEROKITCLIENTNATIVE_PUBLIC int encryptAes256GcmRaw(const uint8_t* key, size_t keyLen,
+  const uint8_t* iv, size_t ivLen, const uint8_t* aad, size_t aadLen, const uint8_t* plaintext,
+  size_t plaintextLen, uint8_t* ciphertext, size_t ciphertextLen, uint8_t* tag, size_t tagLen);
+
+/**
+ * Decrypts the ciphertext with AES256-GCM.
+ * @param key the key. Must be 32 bytes long.
+ * @param keyLen the length of the key.
+ * @param iv the IV.
+ * @param ivLen the length of iv.
+ * @param aad the AAD.
+ * @param aadLen the length of aad.
+ * @param ciphertext the ciphertext.
+ * @param ciphertextLen the length of ciphertext.
+ * @param tag the tag. Must be at least 12 bytes long.
+ * @param tagLen the length of tag.
+ * @param plaintext the buffer to store the plaintext. Must be at least as long as the ciphertext.
+ * @param plaintextLen the length of the plaintext buffer.
+ * @return negative on error, 0 if the verification failed, 1 if the verification succeeded. The
+ * plaintext MUST NOT be used unless the return value is 1.
+ */
+ZEROKITCLIENTNATIVE_PUBLIC int decryptAes256GcmRaw(const uint8_t* key, size_t keyLen,
+  const uint8_t* iv, size_t ivLen, const uint8_t* aad, size_t aadLen, const uint8_t* ciphertext,
+  size_t ciphertextLen, const uint8_t* tag, size_t tagLen, uint8_t* plaintext, size_t plaintextLen);
 
 /**
  * Handle for the client side of an SRP-6 transaction. Must not be reused.
