@@ -951,6 +951,10 @@ $(OUTDIR)/%.o: %.c $(HEADERS)
 	mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(OUTDIR)/openssl/crypto/asn1/x_int64.o: openssl/crypto/asn1/x_int64.c $(HEADERS)
+	mkdir -p $(@D)
+	$(CC) $(CFLAGS) -Wno-format -c $< -o $@
+
 $(OUTDIR)/%.o: %.cpp $(HEADERS)
 	mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
