@@ -1,5 +1,10 @@
 # Change Log
 
+## [4.0.3] - 2017-08-21
+
+### Fix
+ - Warning fix in iOS arm64 build.
+
 ## [4.0.2] - 2017-07-03
 
 ### Added
