@@ -6,7 +6,7 @@ os:
 
 install:
   - curl -O https://dl.google.com/android/repository/android-ndk-r14b-linux-x86_64.zip
-  - unzip -q android-ndk-r14b-linux-x86_64.zip
+  - unzip -oq android-ndk-r14b-linux-x86_64.zip
   - android-ndk-r14b/build/tools/make_standalone_toolchain.py --arch arm --api 14 --stl libc++ --install-dir toolchain/tc-arm
   - android-ndk-r14b/build/tools/make_standalone_toolchain.py --arch arm64 --api 21 --stl libc++ --install-dir toolchain/tc-arm64
   - android-ndk-r14b/build/tools/make_standalone_toolchain.py --arch x86 --api 14 --stl libc++ --install-dir toolchain/tc-x86
