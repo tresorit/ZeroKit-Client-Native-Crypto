@@ -1,5 +1,10 @@
 # Change Log
 
+## [4.0.4] - 2017-10-11
+
+### Fix
+ - Fixed a possible rare crash in OpenSSL initialization.
+
 ## [4.0.3] - 2017-08-21
 
 ### Fix
